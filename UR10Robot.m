@@ -4,7 +4,7 @@ hold on;
 baseTr = transl([3, 1, 0]);  % Set the robot's base on the ground
 import robotics.*;
 
-ur3Robot = LinearUR10(baseTr);
+ur10Robot = LinearUR10(baseTr);
 robot = loadrobot('fanucm16ib');
 gripper = ThreeFingerGripper();
 
@@ -12,20 +12,82 @@ title('UR10', 'Color', 'b');
 set(gcf, 'Name', 'UR10 robot animation', 'NumberTitle', 'Off');
 %% 
 % Environment setup 
-surf([-2,-2;4.5,4.5] ...
-,[-2,4.5;-2,4.5] ...
+surf([-2,-2;6,6] ...
+,[-2,6;-2,6] ...
 ,[0.01,0.01;0.01,0.01] ...
 ,'CData',imread('concrete (1).jpg') ...
 ,'FaceColor','texturemap');
-fireE = PlaceObject('fireExtinguisher.ply',[0.6,0.5,0.1,0,0,0]);
 
-f_1 = PlaceObject('fence.ply',[3,2,0.15,0,0,0]);
-f_2 = PlaceObject('fence.ply',[2,2,0.15,0,0,0]);
-f_3 = PlaceObject('fence.ply',[3,-0.5,0.15,0,0,0]);
-f_4 = PlaceObject('fence.ply',[2,-0.5,0.15,0,0,0]);
-cone_1 = PlaceObject('cone.ply',[4,0.5,0,0,0,0]);
-cone_2 = PlaceObject('cone.ply',[4,1.5,0,0,0,0]);
-man = PlaceObject('man.ply',[-0.6,-0.5,0.25,0,0,0]);
+% Load your wall image
+wallImage = imread('Wall.jpg');
+
+% Left vertical wall
+surf([-2,-2;-2,-2], ...
+     [-2,-2;6,6], ...
+     [0,2;0,2], ...
+     'CData', wallImage, ...
+     'FaceColor', 'texturemap');
+
+% Right vertical wall
+surf([6,6;6,6], ...
+     [-2,-2;6,6], ...
+     [0,2;0,2], ...
+     'CData', wallImage, ...
+     'FaceColor', 'texturemap');
+
+% Bottom vertical wall
+surf([-2,6; -2,6], ...
+     [-2,-2; -2,-2], ...
+     [0,0; 2,2], ...
+     'CData', wallImage, ...
+     'FaceColor', 'texturemap');
+
+% Top vertical wall
+surf([-2,6; -2,6], ...
+     [6,6; 6,6], ...
+     [0,0; 2,2], ...
+     'CData', wallImage, ...
+     'FaceColor', 'texturemap');
+
+fireE1 = PlaceObject('fireExtinguisher.ply',[-1,2,0.1,0,0,0]);
+fireE2 = PlaceObject('fireExtinguisher.ply',[3.8,2,0.1,0,0,0]);
+fireE3 = PlaceObject('fireExtinguisher.ply',[3.8,-0.6,0.1,0,0,0]);
+fireE4 = PlaceObject('fireExtinguisher.ply',[-1,-0.6,0.1,0,0,0]);
+
+f_1 = PlaceObject('fence.ply',[3.4,2.5,0.15,0,0,0]);
+f_2 = PlaceObject('fence.ply',[2.4,2.5,0.15,0,0,0]);
+f_3 = PlaceObject('fence.ply',[1.4,2.5,0.15,0,0,0]);
+f_4 = PlaceObject('fence.ply',[0.4,2.5,0.15,0,0,0]);
+f_5 = PlaceObject('fence.ply',[-0.6,2.5,0.15,0,0,0]);
+
+fr_1 = PlaceObject('rotatedFence.ply', [-1.5,2,0.15,0,0,0]);
+fr_2 = PlaceObject('rotatedFence.ply', [-1.5,1,0.15,0,0,0]);
+fr_3 = PlaceObject('rotatedFence.ply', [-1.5,0,0.15,0,0,0]);
+fr_4 = PlaceObject('rotatedFence.ply', [-1.5,-1,0.15,0,0,0]);
+fr_5 = PlaceObject('rotatedFence.ply', [4.2,2,0.15,0,0,0]);
+fr_6 = PlaceObject('rotatedFence.ply', [4.2,1,0.15,0,0,0]);
+fr_7 = PlaceObject('rotatedFence.ply', [4.2,0,0.15,0,0,0]);
+fr_8 = PlaceObject('rotatedFence.ply', [4.2,-1,0.15,0,0,0]);
+
+f_6 = PlaceObject('fence.ply',[3.4,-1.2,0.15,0,0,0]);
+f_7 = PlaceObject('fence.ply',[2.4,-1.2,0.15,0,0,0]);
+f_8 = PlaceObject('fence.ply',[1.4,-1.2,0.15,0,0,0]);
+f_9 = PlaceObject('fence.ply',[0.4,-1.2,0.15,0,0,0]);
+f_10 = PlaceObject('fence.ply',[-0.6,-1.2,0.15,0,0,0]);
+
+cone_1 = PlaceObject('cone.ply',[2.5,3,0,0,0,0]);
+cone_2 = PlaceObject('cone.ply',[1,3,0,0,0,0]);
+cone_3 = PlaceObject('cone.ply',[-0.5,3,0,0,0,0]);
+cone_4 = PlaceObject('cone.ply',[2.5,-1.6,0,0,0,0]);
+cone_5 = PlaceObject('cone.ply',[1,-1.6,0,0,0,0]);
+cone_6 = PlaceObject('cone.ply',[-0.5,-1.6,0,0,0,0]);
+
+
+man = PlaceObject('man.ply',[-0.6,1,0.25,0,0,0]);
+man2 = PlaceObject('man.ply',[3.6,1,0.25,0,0,0]);
+man3 = PlaceObject('man2.ply',[3.6,0.75,0.35,0,0,0]);
+man4 = PlaceObject('man2.ply',[-0.8,0.75,0.35,0,0,0]);
+
 cart1 = PlaceObject('cart.ply',[3.75,0.25,0.15,0,0,0]);
 %% 
 
@@ -59,15 +121,15 @@ brickDropoff = {
 };
 
 brickUnload = {
-    [0.8, 1.05, 0.25];  % First brick unload position (adjust Z-coordinate as needed)
-    [1.0, 1.05, 0.25];  % Adjust Z-coordinate
-    [1.2, 1.05, 0.25];   % Adjust Z-coordinate
-    [0.8, 1.05, 0.3];   % Adjust Z-coordinate
-    [1.0, 1.05, 0.3];   % Adjust Z-coordinate
-    [1.2, 1.05, 0.3];    % Adjust Z-coordinate
-    [0.8, 1.05, 0.35];  % Adjust Z-coordinate
-    [1.0, 1.05, 0.35];  % Adjust Z-coordinate
-    [1.2, 1.05, 0.35];   % Adjust Z-coordinate
+    [0.8, 1.05, 0];  % First brick unload position (adjust Z-coordinate as needed)
+    [1.0, 1.05, 0];  % Adjust Z-coordinate
+    [1.2, 1.05, 0];   % Adjust Z-coordinate
+    [0.8, 1.05, 0.05];   % Adjust Z-coordinate
+    [1.0, 1.05, 0.05];   % Adjust Z-coordinate
+    [1.2, 1.05, 0.05];    % Adjust Z-coordinate
+    [0.8, 1.05, 0.1];  % Adjust Z-coordinate
+    [1.0, 1.05, 0.1];  % Adjust Z-coordinate
+    [1.2, 1.05, 0.1];   % Adjust Z-coordinate
 };
 
 %% Define Fanuc and Gripper
@@ -102,38 +164,41 @@ for i = 1:length(brickStart)
     T_pickup = transl(pickup) * rpy2tr(0, pi, 0);
     T_dropoff = transl(dropoff) * rpy2tr(0, pi, 0);
 
-    q_current = ur3Robot.model.getpos();
-    q_pickup = ur3Robot.model.ikcon(T_pickup);
+    q_current = ur10Robot.model.getpos();
+    q_pickup = ur10Robot.model.ikcon(T_pickup);
     qMatrix_pickup = jtraj(q_current, q_pickup, 50);
 
     % Animate pickup
     for j = 1:50
-        ur3Robot.model.animate(qMatrix_pickup(j, :));
+        ur10Robot.model.animate(qMatrix_pickup(j, :));
         drawnow();
     end
 
     % "Remove" brick from the original position by making it invisible
     delete(h_brick);
 
-    q_dropoff = ur3Robot.model.ikcon(T_dropoff);
+    q_dropoff = ur10Robot.model.ikcon(T_dropoff);
     qMatrix_dropoff = jtraj(q_pickup, q_dropoff, 50);
 
     % Animate moving to dropoff
     for j = 1:50
-        ur3Robot.model.animate(qMatrix_dropoff(j, :));
+        ur10Robot.model.animate(qMatrix_dropoff(j, :));
         drawnow();
+        
     end
-
+    
     % Display the brick at the new location after the robot "drops" it off
     PlaceObject('ore.ply', dropoff);
 
     % When placing the brick on the cart
     h_brickOnCart = PlaceObject('ore.ply', dropoff);
     brickHandlesOnCart(i) = h_brickOnCart;
+    
+    
     drawnow();
 end
 
-%% cart movement
+%% cart movement with ores
 
 
 % Define the initial and final positions of the cart
@@ -183,25 +248,25 @@ for i = 1:length(brickUnload)
 
     T_pickup = transl(pickup1) * rpy2tr(0, pi, 0);
     T_unload = transl(unload) * rpy2tr(0, pi, 0);
-    q_current = ur3Robot.model.getpos();
-    q_pickFromCart = ur3Robot.model.ikcon(T_pickup);
+    q_current = ur10Robot.model.getpos();
+    q_pickFromCart = ur10Robot.model.ikcon(T_pickup);
     qMatrix_pickFromCart = jtraj(q_current, q_pickFromCart, 50);
 
     % Animate robot reaching the brick in the cart
     for j = 1:50
-        ur3Robot.model.animate(qMatrix_pickFromCart(j, :));
+        ur10Robot.model.animate(qMatrix_pickFromCart(j, :));
         drawnow();
     end
 
     % Delete the brick from the cart
     delete(brickHandlesOnCart(i));
 
-    q_unload = ur3Robot.model.ikcon(T_unload);
+    q_unload = ur10Robot.model.ikcon(T_unload);
     qMatrix_unload = jtraj(q_pickFromCart, q_unload, 50);
 
     % Animate robot placing the brick at the unload position
     for j = 1:50
-        ur3Robot.model.animate(qMatrix_unload(j, :));
+        ur10Robot.model.animate(qMatrix_unload(j, :));
         drawnow();
     end
 
