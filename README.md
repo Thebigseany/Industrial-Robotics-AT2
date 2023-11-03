@@ -1,5 +1,5 @@
 # Industrial-Robotics-AT2
-Models the FANUC M16-iB robot and Linear UR10 robot in a simulated mineshaft environment. This implementation includes safety features such as collision detection, collision avoidance, emergency stops and a GUI for human control of the robots.
+Models the FANUC M16-iB robot and Linear UR10 robot in a simulated mineshaft environment. This implementation includes safety features such as collision detection, emergency stops and a GUI for human control of the robots.
 This project requires Peter Corke's Robotics Toolbox (Modified by UTS).
 
 ## Simulation Functional Files
