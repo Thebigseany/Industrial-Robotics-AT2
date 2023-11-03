@@ -99,28 +99,26 @@ cart1 = PlaceObject('cart.ply',[3.75,0.25,0.15,0,0,0]);
 
  brickHandlesOnCart = [];  % To store the handles of bricks on the cart
 brickStart = {
-    [3.4, 1.35, 0];  % Adjust Z-coordinate to 0
-    [3.3, 1.35, 0];  % Adjust Z-coordinate to 0
-    [3.2, 1.35, 0];  % Adjust Z-coordinate to 0
-    [3.1, 1.35, 0];  % Adjust Z-coordinate to 0
-
-    % ... (other brick positions)
+    [3.4, 1.35, 0];
+    [3.3, 1.35, 0];
+    [3.2, 1.35, 0];
+    [3.1, 1.35, 0];
 };
 
 % Initialize/hardcode brickDropoff locations. building a 3x3 wall on the other side
 brickDropoff = {
-    [3.52, 0.5, 0.25];  % First brick dropoff position (adjust Z-coordinate as needed)
-    [3.42, 0.5, 0.25];  % Adjust Z-coordinate
-    [3.3, 0.5, 0.25];   % Adjust Z-coordinate
-    [3.5, 0.5, 0.3];    % Adjust Z-coordinate
+    [3.52, 0.5, 0.25];  % First brick dropoff position
+    [3.42, 0.5, 0.25];
+    [3.3, 0.5, 0.25];
+    [3.5, 0.5, 0.35];
 
 };
 
 brickUnload = {
-    [0.8, 1.05, 0];  % First brick unload position (adjust Z-coordinate as needed)
-    [1.0, 1.05, 0];  % Adjust Z-coordinate
-    [1.2, 1.05, 0];   % Adjust Z-coordinate
-    [0.8, 1.05, 0.05];   % Adjust Z-coordinate
+    [0.8, 1.05, 0];  % First brick unload position 
+    [1.0, 1.05, 0];
+    [1.2, 1.05, 0]; 
+    [0.8, 1.05, 0.1];
 
 };
 
@@ -128,7 +126,7 @@ brickUnload = {
 % Define Open and Closed Joint Angles for Gripper
 gripperOpen = [5*pi/6 -pi/6 -pi/4; pi/6 pi/6 pi/4; pi/6 pi/6 pi/4];
 
-gripperClosed = [5*pi/8 -pi/6 -pi/12; 3*pi/8 pi/6 pi/12; 3*pi/8 pi/6 pi/12]; % Will adjust this value once Ali provides dimensions for the ore model
+gripperClosed = [5*pi/8 -pi/6 -pi/12; 3*pi/8 pi/6 pi/12; 3*pi/8 pi/6 pi/12];
 hold on;
 % axis([-3 3 -3 3 0 3]);
 
@@ -267,6 +265,136 @@ for i = 1:length(brickUnload)
     drawnow();
 end
 
+%% Fanuc M16iB Movement
+gripperOpen = [5*pi/6 -pi/6 -pi/4; pi/6 pi/6 pi/4; pi/6 pi/6 pi/4];
+
+gripperClosed = [5*pi/7 -pi/6 -pi/12; 2*pi/7 pi/6 pi/12; 2*pi/7 pi/6 pi/12];
+
+% Set the DataFormat property of the robot
+robot.DataFormat = 'row';
+
+% Define robot configurations for pick and place operation
+qPick = robot.homeConfiguration;
+% qPlace = robot.randomConfiguration; % REPLACE with joint configuration of where the ore will be placed (currently generates a random configuration)
+
+% Robot Movement to second position
+% Gripper Opens
+for t_2 = 0:0.05:1
+    % Interpolate between open and closed configurations
+    gripperState = (1-t_2)*gripperOpen + t*gripperClosed;
+
+    for j = 1:length(gripper.model)
+        % Update base property before each animation step
+        gripper.model{j}.base = (endEffectorFrame * transl(basePositions(j,:)) * trotz(-pi/2));
+        gripper.model{j}.animate(gripperState(j,:));
+    end
+
+    drawnow; % Force MATLAB to update the plot
+end
+
+home = robot.homeConfiguration;
+guess = robot.randomConfiguration;
+weights = [pi, pi, pi, 2, 2, 1];
+for p = 1: length(brickUnload)
+
+    ik = inverseKinematics('RigidBodyTree',robot);
+    [configSol,~] = ik('link_6',brickUnload{p,:}, weights, guess);
+    qPlace = configSol;
+    [qTraj,~,~] = jtraj(qPick, qPlace, steps);
+
+    
+    for t_1 = 1:steps
+        % Get current configuration from trajectory
+        qCurrent = qTraj(t_1,:);
+        
+        % Check for self-collision
+        if ~robot.checkCollision(qCurrent, 'SkippedSelfCollisions', 'parent')
+            % Update end effector frame based on current robot configuration
+            endEffectorFrame = getTransform(robot, qCurrent, 'link_6');
+            
+            % Interpolate between open and closed configurations for the gripper
+            gripperState = (1-t_1/steps)*gripperOpen + (t_1/steps)*gripperClosed;
+            
+            % Update robot configuration in the plot
+             show(robot, qCurrent, 'Frames', 'off', 'PreservePlot', false);
+             
+            drawnow; % Force MATLAB to update the plot`
+        end 
+    end
+    
+    for g_1 = 0:0.05:1
+        % Interpolate between open and closed configurations
+        gripperState = (1-g_1)*gripperClosed + t*gripperOpen;
+    
+        for j = 1:length(gripper.model)
+            % Update base property before each animation step
+            gripper.model{j}.base = (endEffectorFrame * transl(basePositions(j,:)) * trotz(-pi/2));
+            gripper.model{j}.animate(gripperState(j,:));
+        end
+    
+        drawnow; % Force MATLAB to update the plot
+    end
+
+    [configSol,~] = ik('link_6',orePlace2{p,:},guess);
+    qPlace = configSol;
+    [qTraj,~,~] = jtraj(qStart, qPlace, steps);
+
+    for t_2 = 1:steps
+        % Get current configuration from trajectory
+        qCurrent = qTraj(t_2,:);
+        
+        % Check for self-collision
+        if ~robot.checkCollision(qCurrent, 'SkippedSelfCollisions', 'parent')
+            % Update end effector frame based on current robot configuration
+            endEffectorFrame = getTransform(robot, qCurrent, 'link_6');
+            
+            % Interpolate between open and closed configurations for the gripper
+            gripperState = (1-t_2/steps)*gripperOpen + (t_2/steps)*gripperClosed;
+            
+            % Update robot configuration in the plot
+             show(robot, qCurrent, 'Frames', 'off', 'PreservePlot', false);
+             
+            drawnow; % Force MATLAB to update the plot`
+        end 
+    end
+    
+    % Animate Gripper
+    for g_2 = 0:0.05:1
+        % Interpolate between open and closed configurations
+        gripperState = (1-g_2)*gripperOpen + t*gripperClosed;
+    
+        for j = 1:length(gripper.model)
+            % Update base property before each animation step
+            gripper.model{j}.base = (endEffectorFrame * transl(basePositions(j,:)) * trotz(-pi/2));
+            gripper.model{j}.animate(gripperState(j,:));
+        end
+    
+        drawnow; % Force MATLAB to update the plot
+    end
+    
+    [configSol,~] = ik('link_6',home,guess);
+    qPlace = configSol;
+    [qTraj,~,~] = jtraj(qStart, qPlace, steps);
+    
+    for t_3 = 1:steps
+        % Get current configuration from trajectory
+        qCurrent = qTraj(t_3,:);
+        
+        % Check for self-collision
+        if ~robot.checkCollision(qCurrent, 'SkippedSelfCollisions', 'parent')
+            % Update end effector frame based on current robot configuration
+            endEffectorFrame = getTransform(robot, qCurrent, 'link_6');
+            
+            % Interpolate between open and closed configurations for the gripper
+            gripperState = (1-t_3/steps)*gripperOpen + (t_3/steps)*gripperClosed;
+            
+            % Update robot configuration in the plot
+             show(robot, qCurrent, 'Frames', 'off', 'PreservePlot', false);
+             
+            drawnow; % Force MATLAB to update the plot`
+        end 
+    end
+end
 
 
 
